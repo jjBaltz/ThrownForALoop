@@ -26,39 +26,101 @@ List<Product> products = new List<Product>()
 
 Console.WriteLine(greeting);
 
-decimal totalValue = 0.0M;
-foreach (Product product in products)
+string choice = null;
+while (choice != "0")
 {
-    if (!product.Sold)
+    Console.WriteLine(@"Choose an option:
+                        0. Exit
+                        1. List of Products
+                        2. View Product Details
+                        3. View Latest Products");
+    choice = Console.ReadLine()!;
+    if (choice == "0")
     {
-        totalValue += product.Price;
+        Console.WriteLine("Goodbye!");
+    }
+    else if (choice == "1")
+    {
+        ListProducts();
+    }
+    else if (choice == "2")
+    {
+        ViewProductDetails();
+    }
+    else if (choice == "3")
+    {
+        ViewLatestProducts();
     }
 }
-Console.WriteLine($"Total inventory value: ${totalValue}");
 
-Console.WriteLine("Products:");
-for (int i = 0; i < products.Count; i++)
+void ViewProductDetails()
 {
-    Console.WriteLine($"{i + 1}. {products[i].Name}");
+    ListProducts();
+    Product chosenProduct = null!;
+
+    while (chosenProduct == null)
+    {
+        Console.WriteLine("Please enter a product number: ");
+        try
+        {
+            int response = int.Parse(Console.ReadLine().Trim());
+            chosenProduct = products[response - 1];
+        }
+        catch (FormatException)
+        {
+            Console.WriteLine("Please type only integers!");
+        }
+        catch (ArgumentOutOfRangeException)
+        {
+            Console.WriteLine("Please choose an existing item only!");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine(ex);
+            Console.WriteLine("Do better!");
+        }
+    }
+    DateTime now = DateTime.Now;
+
+    TimeSpan timeInStock = now - chosenProduct.StockDate;
+
+    Console.WriteLine(@$"You chose: 
+    {chosenProduct.Name}, which costs {chosenProduct.Price} dollars.
+    It is {now.Year - chosenProduct.ManufactureYear} years old. 
+    It {(chosenProduct.Sold ? "is not available." : $"has been in stock for {timeInStock.Days} days.")}
+    It is in {chosenProduct.Condition} condition.");
 }
-Console.WriteLine("Please enter a product number: ");
 
-int response = int.Parse(Console.ReadLine().Trim());
-
-while (response > products.Count || response < 1)
+void ListProducts()
 {
-    Console.WriteLine("Choose a number between 1 and 5!");
-    response = int.Parse(Console.ReadLine().Trim());
+    decimal totalValue = 0.0M;
+    foreach (Product product in products)
+    {
+        if (!product.Sold)
+        {
+            totalValue += product.Price;
+        }
+    }
+    Console.WriteLine($"Total inventory value: ${totalValue}");
+    Console.WriteLine("Products:");
+    for (int i = 0; i < products.Count; i++)
+    {
+        Console.WriteLine($"{i + 1}. {products[i].Name}");
+    }
 }
 
-DateTime now = DateTime.Now;
+void ViewLatestProducts() {
+    List<Product> latestProducts = new();
 
-Product chosenProduct = products[response - 1];
+    DateTime threeMonthsAgo = DateTime.Now - TimeSpan.FromDays(90);
 
-TimeSpan timeInStock = now - chosenProduct.StockDate;
+    foreach (Product product in products){
+        if(product.StockDate > threeMonthsAgo && !product.Sold) {
+            latestProducts.Add(product);
+        }
+    }
 
-Console.WriteLine(@$"You chose: 
-{chosenProduct.Name}, which costs {chosenProduct.Price} dollars.
-It is {now.Year - chosenProduct.ManufactureYear} years old. 
-It {(chosenProduct.Sold ? "is not available." : $"has been in stock for {timeInStock.Days} days.")}
-It is in {chosenProduct.Condition} condition.");
+    for (int i = 0; i < latestProducts.Count; i++){
+        Console.WriteLine($"{1+i}. {latestProducts[i].Name}");
+    }
+}
